@@ -1,0 +1,19 @@
+.git/
+*.log
+*.tmp
+*.user
+*.cache
+
+# PowerShell
+*.ps1xml
+
+# Build and package artifacts
+bin/
+obj/
+
+# Test output
+artifacts/
+
+# Local database/runtime state
+wiki.db
+
