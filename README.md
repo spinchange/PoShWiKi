@@ -29,6 +29,45 @@ pwsh -NoProfile -File .\wiki.ps1 get Home
 pwsh -NoProfile -File .\wiki.ps1 list
 ```
 
+## Agent Wrapper Functions
+
+If you want shorter commands in an interactive PowerShell 7 session, dot-source [PoShWiKi.Agent.ps1](./PoShWiKi.Agent.ps1):
+
+```powershell
+. .\PoShWiKi.Agent.ps1
+```
+
+For automatic loading from your PowerShell profile, set `POSHWIKI_AGENT_SCRIPT` to the wrapper path if the repo may move:
+
+```powershell
+$env:POSHWIKI_AGENT_SCRIPT = 'C:\path\to\PoShWiKi\PoShWiKi.Agent.ps1'
+```
+
+The profile snippet can then use that value first and fall back to common local clone locations.
+
+Available wrapper functions:
+
+- `wiki-get <title>`: returns the page as a PowerShell object
+- `wiki-get <title> -Text`: renders the human-readable text output
+- `wiki-find <query>`: returns search results as PowerShell objects
+- `wiki-list`: returns the page list as objects
+- `wiki-recent`: returns recent pages as objects
+- `wiki-stats`: returns stats as an object
+- `wiki-note <page> <section> <text>`: upserts a section and creates the page if needed
+- `wiki-log <page> <text>`: appends to the default `Actions` section and creates the page or section if needed
+- `wiki-save <page> <text>`: saves a full page
+- `wiki-session-page <topic>`: generates a standard session page title
+
+Example:
+
+```powershell
+. .\PoShWiKi.Agent.ps1
+$page = wiki-session-page "Repo Setup"
+wiki-note $page "Goal" "Set up PoShWiKi locally."
+wiki-log $page "Initialized the database and ran tests."
+wiki-get $page
+```
+
 For agent-friendly output, add `-JSON`:
 
 ```powershell
@@ -70,4 +109,22 @@ Run the contract and error-path test:
 
 ```powershell
 pwsh -NoProfile -File .\tests\contracts.ps1
+```
+
+Run the wrapper behavior test:
+
+```powershell
+pwsh -NoProfile -File .\tests\wrapper.ps1
+```
+
+Run the profile loader smoke test:
+
+```powershell
+pwsh -NoProfile -File .\tests\profile-smoke.ps1
+```
+
+Run the concurrent section write test:
+
+```powershell
+pwsh -NoProfile -File .\tests\concurrency.ps1
 ```
