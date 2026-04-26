@@ -224,6 +224,18 @@ CREATE TABLE IF NOT EXISTS Pages (
     Created DATETIME DEFAULT CURRENT_TIMESTAMP,
     Modified DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS Links (
+    Source TEXT NOT NULL,
+    Target TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_links_source ON Links(Source);
+CREATE INDEX IF NOT EXISTS idx_links_target ON Links(Target);
+CREATE TABLE IF NOT EXISTS NoteEmbeddings (
+    NoteName    TEXT PRIMARY KEY,
+    Embedding   TEXT NOT NULL,
+    ContentHash TEXT NOT NULL,
+    EmbeddedAt  DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 "@
     Invoke-WikiNonQuery -Query $query
     Write-Host "Success: Database initialized." -ForegroundColor Green
