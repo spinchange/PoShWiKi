@@ -236,6 +236,15 @@ CREATE TABLE IF NOT EXISTS NoteEmbeddings (
     ContentHash TEXT NOT NULL,
     EmbeddedAt  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS CoOccurrenceEvents (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    NoteA TEXT NOT NULL,
+    NoteB TEXT NOT NULL,
+    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    WeightIncrement REAL DEFAULT 1.0,
+    CHECK (NoteA < NoteB)
+);
+CREATE INDEX IF NOT EXISTS idx_cooccurrence_notes ON CoOccurrenceEvents(NoteA, NoteB);
 "@
     Invoke-WikiNonQuery -Query $query
     Write-Host "Success: Database initialized." -ForegroundColor Green
@@ -624,4 +633,30 @@ function Get-WikiStats {
     }
 }
 
-Export-ModuleMember -Function Initialize-Wiki, Get-WikiPage, Set-WikiPage, Get-WikiTemplateNames, New-WikiPageFromTemplate, Convert-WikiMarkdownToDisplayText, Update-WikiPageSection, Add-WikiPageSectionContent, Set-WikiPageSection, Find-WikiPage, Get-WikiPageList, Get-WikiRecentPages, Remove-WikiPage, Get-WikiStats
+function Record-CoOccurrence {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$NoteA,
+
+        [Parameter(Mandatory=$true)]
+        [string]$NoteB,
+
+        [Parameter(Mandatory=$false)]
+        [double]$Weight = 1.0
+    )
+
+    if ($NoteA -eq $NoteB) {
+        Write-Warning "Cannot record co-occurrence for the same note: $NoteA"
+        return
+    }
+
+    $notes = @($NoteA, $NoteB) | Sort-Object
+    $a = $notes[0]
+    $b = $notes[1]
+
+    $query = "INSERT INTO CoOccurrenceEvents (NoteA, NoteB, WeightIncrement) VALUES (@NoteA, @NoteB, @Weight)"
+    Invoke-WikiNonQuery -Query $query -Parameters @{ NoteA = $a; NoteB = $b; Weight = $Weight }
+}
+
+Export-ModuleMember -Function Initialize-Wiki, Get-WikiPage, Set-WikiPage, Get-WikiTemplateNames, New-WikiPageFromTemplate, Convert-WikiMarkdownToDisplayText, Update-WikiPageSection, Add-WikiPageSectionContent, Set-WikiPageSection, Find-WikiPage, Get-WikiPageList, Get-WikiRecentPages, Remove-WikiPage, Get-WikiStats, Record-CoOccurrence, Invoke-WikiSql, Invoke-WikiNonQuery
